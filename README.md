@@ -6,14 +6,20 @@
 
 - yarn dev
 
-### 说明
+### 重点API说明
 
-- connect: 连接全局的 store 和组件
+- 全局数据源: store
+
+- 读数据: state
 
 - 写数据: dispatch
 
-  - action
+  - reducer(state, action): 规范new state的创建
 
-  - reducer
+  - initState: 初始state
 
-- 读数据: state(store)
+  - action: 变动的描述update
+
+- connect: 连接store & 组件
+
+- Provider: 提供全局的store
