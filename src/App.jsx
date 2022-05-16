@@ -47,14 +47,31 @@ const User = () => {
   return <div>User:{contextValue.appState.user.name}</div>;
 };
 
+// 规范创建新的state过程
+const creatNewState = (state, actionType, actionData) => {
+  if (actionType === "updateUser") {
+    return {
+      ...state,
+      user: {
+        ...state.user,
+        actionData,
+      },
+    };
+  } else {
+    return state;
+  }
+};
+
 // 写数据
 const UserModifier = () => {
   const contextValue = useContext(AppContext);
   const { appState, setAppState } = contextValue;
 
   const onChange = (e) => {
-    appState.user.name = e.target.value;
-    setAppState({ ...appState });
+    const newState = creatNewState(appState, "updateUser", {
+      name: e.target.value,
+    });
+    setAppState(newState);
   };
 
   return (
