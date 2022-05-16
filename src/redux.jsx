@@ -47,9 +47,13 @@ export const connect = (selector) => (Component) => {
     const [, update] = useState({});
     useEffect(() => {
       subscribe(() => {
-        update({});
+        // 实现精准更新
+        const newData = selector ? selector(state) : { state };
+        if (changed(data, newData)) {
+          update({});
+        }
       });
-    }, []);
+    }, [selector]);
     // 更新数据
     const dispatch = (action) => {
       const newState = reducer(state, action);
@@ -58,4 +62,14 @@ export const connect = (selector) => (Component) => {
     return <Component {...props} {...data} dispatch={dispatch} />;
   };
   return Wrapper;
+};
+
+const changed = (oldState, newState) => {
+  let changed = false;
+  for (let key in oldState) {
+    if (oldState[key] !== newState[key]) {
+      changed = true;
+    }
+  }
+  return changed;
 };
