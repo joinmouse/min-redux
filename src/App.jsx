@@ -65,26 +65,26 @@ const reducer = (state, action) => {
   }
 };
 
-const createWrapper = (Component) => {
+const connect = (Component) => {
   const Wrapper = (props) => {
     const contextValue = useContext(AppContext);
     const { appState, setAppState } = contextValue;
     // 更新数据
-    const updateState = (action) => {
+    const dispatch = (action) => {
       const newState = reducer(appState, action);
       setAppState(newState);
     };
-    return <Component {...props} updateState={updateState} state={appState} />;
+    return <Component {...props} dispatch={dispatch} state={appState} />;
   };
   return Wrapper;
 };
 
 // createWrapper 将组件和全局的state链接起来
-const UserModifier = createWrapper(({ state, updateState, children }) => {
+const UserModifier = connect(({ state, updateState, children }) => {
   // 写数据
   const onChange = (e) => {
     // update action
-    updateState({
+    dispatch({
       type: "updateUser",
       data: { name: e.target.value },
     });
