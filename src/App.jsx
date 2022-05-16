@@ -34,7 +34,7 @@ const SecondSon = () => {
   return (
     <section>
       <p>次子</p>
-      <Wrapper />
+      <UserModifier>输入</UserModifier>
     </section>
   );
 };
@@ -65,22 +65,23 @@ const reducer = (state, action) => {
   }
 };
 
-const Wrapper = () => {
-  const contextValue = useContext(AppContext);
-  const { appState, setAppState } = contextValue;
-  // 更新数据
-  const updateState = (action) => {
-    const newState = reducer(appState, action);
-    setAppState(newState);
+const createWrapper = (Component) => {
+  const Wrapper = (props) => {
+    const contextValue = useContext(AppContext);
+    const { appState, setAppState } = contextValue;
+    // 更新数据
+    const updateState = (action) => {
+      const newState = reducer(appState, action);
+      setAppState(newState);
+    };
+    return <Component {...props} updateState={updateState} state={appState} />;
   };
-
-  return <UserModifier updateState={updateState} state={appState} />;
+  return Wrapper;
 };
 
-// 写数据
-const UserModifier = (props) => {
-  const { updateState, state } = props;
-
+// createWrapper 将组件和全局的state链接起来
+const UserModifier = createWrapper(({ state, updateState, children }) => {
+  // 写数据
   const onChange = (e) => {
     // update action
     updateState({
@@ -91,9 +92,10 @@ const UserModifier = (props) => {
 
   return (
     <div>
+      {children}
       <input value={state.user.name} onChange={onChange} />
     </div>
   );
-};
+});
 
 export default App;
