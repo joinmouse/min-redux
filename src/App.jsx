@@ -80,7 +80,7 @@ const connect = (Component) => {
 };
 
 // createWrapper 将组件和全局的state链接起来
-const UserModifier = connect(({ state, updateState, children }) => {
+const UserModifier = connect(({ state, dispatch, children }) => {
   // 写数据
   const onChange = (e) => {
     // update action
