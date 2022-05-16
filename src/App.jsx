@@ -7,6 +7,8 @@ const App = () => {
     user: { name: "frank", age: 18 },
   });
   const contextValue = { appState, setAppState };
+
+  console.log("appState", appState);
   return (
     <AppContext.Provider value={contextValue}>
       <FirstSon />
@@ -47,14 +49,14 @@ const User = () => {
   return <div>User:{contextValue.appState.user.name}</div>;
 };
 
-// 规范创建新的state过程
-const creatNewState = (state, actionType, actionData) => {
-  if (actionType === "updateUser") {
+// 规范创建新的state过程: reducer(creatNewState)
+const reducer = (state, action) => {
+  if (action.type === "updateUser") {
     return {
       ...state,
       user: {
         ...state.user,
-        actionData,
+        ...action.data,
       },
     };
   } else {
@@ -68,8 +70,9 @@ const UserModifier = () => {
   const { appState, setAppState } = contextValue;
 
   const onChange = (e) => {
-    const newState = creatNewState(appState, "updateUser", {
-      name: e.target.value,
+    const newState = reducer(appState, {
+      type: "updateUser",
+      data: { name: e.target.value },
     });
     setAppState(newState);
   };
