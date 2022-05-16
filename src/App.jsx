@@ -1,17 +1,51 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useMemo, useEffect } from "react";
 
 const AppContext = React.createContext(null);
+const store = {
+  state: {
+    user: { name: "frank", age: 18 },
+  },
+  setState: (newState) => {
+    store.state = newState;
+    // 更新所有订阅的组件
+    store.listeners.map((fn) => fn(store.state));
+  },
+  listeners: [],
+  // 订阅
+  subscribe: (fn) => {
+    store.listeners.push(fn);
+    // 取消订阅
+    return () => {
+      const index = store.listeners.indexOf(fn);
+      store.listeners.splice(index, 1);
+    };
+  },
+};
+
+const connect = (Component) => {
+  const Wrapper = (props) => {
+    const store = useContext(AppContext);
+    const { state, setState, subscribe } = store;
+    // 订阅 & 更新
+    const [, update] = useState({});
+    useEffect(() => {
+      subscribe(() => {
+        update({});
+      });
+    }, []);
+    // 更新数据
+    const dispatch = (action) => {
+      const newState = reducer(state, action);
+      setState(newState);
+    };
+    return <Component {...props} dispatch={dispatch} state={state} />;
+  };
+  return Wrapper;
+};
 
 const App = () => {
-  const [appState, setAppState] = useState({
-    user: { name: "frank", age: 18 },
-  });
-  const contextValue = { appState, setAppState };
-
-  console.log("appState", appState);
-
   return (
-    <AppContext.Provider value={contextValue}>
+    <AppContext.Provider value={store}>
       <FirstSon />
       <SecondSon />
       <ThirdSon />
@@ -20,7 +54,7 @@ const App = () => {
 };
 
 const FirstSon = () => {
-  console.log("render FirstSon");
+  console.log("FirstSon", Math.random());
   return (
     <section>
       <p>长子</p>
@@ -30,7 +64,7 @@ const FirstSon = () => {
 };
 
 const SecondSon = () => {
-  console.log("render SecondSon");
+  console.log("SecondSon", Math.random());
   return (
     <section>
       <p>次子</p>
@@ -40,15 +74,15 @@ const SecondSon = () => {
 };
 
 const ThirdSon = () => {
-  console.log("render ThirdSon");
+  console.log("ThirdSon", Math.random());
   return <section>小儿子</section>;
 };
 
 // 读数据
-const User = () => {
-  const contextValue = useContext(AppContext);
-  return <div>User:{contextValue.appState.user.name}</div>;
-};
+const User = connect(({ state }) => {
+  console.log9;
+  return <div>User:{state.user.name}</div>;
+});
 
 // 规范创建新的state过程: reducer(creatNewState)
 const reducer = (state, action) => {
@@ -63,20 +97,6 @@ const reducer = (state, action) => {
   } else {
     return state;
   }
-};
-
-const connect = (Component) => {
-  const Wrapper = (props) => {
-    const contextValue = useContext(AppContext);
-    const { appState, setAppState } = contextValue;
-    // 更新数据
-    const dispatch = (action) => {
-      const newState = reducer(appState, action);
-      setAppState(newState);
-    };
-    return <Component {...props} dispatch={dispatch} state={appState} />;
-  };
-  return Wrapper;
 };
 
 // createWrapper 将组件和全局的state链接起来
