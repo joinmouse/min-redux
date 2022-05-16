@@ -38,10 +38,11 @@ const reducer = (state, action) => {
 
 export const AppContext = React.createContext(null);
 
-export const connect = (Component) => {
+export const connect = (selector) => (Component) => {
   const Wrapper = (props) => {
     const store = useContext(AppContext);
     const { state, setState, subscribe } = store;
+    const data = selector ? selector(state) : { state };
     // 订阅 & 更新
     const [, update] = useState({});
     useEffect(() => {
@@ -54,7 +55,7 @@ export const connect = (Component) => {
       const newState = reducer(state, action);
       setState(newState);
     };
-    return <Component {...props} dispatch={dispatch} state={state} />;
+    return <Component {...props} {...data} dispatch={dispatch} />;
   };
   return Wrapper;
 };

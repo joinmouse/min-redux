@@ -37,12 +37,14 @@ const ThirdSon = () => {
 };
 
 // 读数据
-const User = connect(({ state }) => {
-  return <div>User:{state.user.name}</div>;
+const User = connect((state) => {
+  return state.user;
+})(({ name }) => {
+  return <div>User:{name}</div>;
 });
 
 // createWrapper 将组件和全局的state链接起来
-const UserModifier = connect(({ state, dispatch, children }) => {
+const UserModifier = connect()(({ state, dispatch, children }) => {
   // 写数据
   const onChange = (e) => {
     // update action
