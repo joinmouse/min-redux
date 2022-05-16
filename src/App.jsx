@@ -9,6 +9,7 @@ const App = () => {
   const contextValue = { appState, setAppState };
 
   console.log("appState", appState);
+
   return (
     <AppContext.Provider value={contextValue}>
       <FirstSon />
@@ -33,7 +34,7 @@ const SecondSon = () => {
   return (
     <section>
       <p>次子</p>
-      <UserModifier />
+      <Wrapper />
     </section>
   );
 };
@@ -64,22 +65,33 @@ const reducer = (state, action) => {
   }
 };
 
-// 写数据
-const UserModifier = () => {
+const Wrapper = () => {
   const contextValue = useContext(AppContext);
   const { appState, setAppState } = contextValue;
+  // 更新数据
+  const updateState = (action) => {
+    const newState = reducer(appState, action);
+    setAppState(newState);
+  };
+
+  return <UserModifier updateState={updateState} state={appState} />;
+};
+
+// 写数据
+const UserModifier = (props) => {
+  const { updateState, state } = props;
 
   const onChange = (e) => {
-    const newState = reducer(appState, {
+    // update action
+    updateState({
       type: "updateUser",
       data: { name: e.target.value },
     });
-    setAppState(newState);
   };
 
   return (
     <div>
-      <input value={appState.user.name} onChange={onChange} />
+      <input value={state.user.name} onChange={onChange} />
     </div>
   );
 };
