@@ -1,13 +1,34 @@
 import React from "react";
-import { AppContext, connect, store } from "./redux";
+import { Provider, createStore, connect } from "./redux";
+import connectToUser from "./connecters/connectToUser";
+
+// 规范创建新的state过程: reducer(creatNewState)
+const reducer = (state, action) => {
+  if (action.type === "updateUser") {
+    return {
+      ...state,
+      user: {
+        ...state.user,
+        ...action.data,
+      },
+    };
+  } else {
+    return state;
+  }
+};
+const initState = {
+  user: { name: "frank", age: 18 },
+  group: { name: "FE" },
+};
+const store = createStore(reducer, initState);
 
 const App = () => {
   return (
-    <AppContext.Provider value={store}>
+    <Provider store={store}>
       <FirstSon />
       <SecondSon />
       <ThirdSon />
-    </AppContext.Provider>
+    </Provider>
   );
 };
 
@@ -37,27 +58,22 @@ const ThirdSon = () => {
 };
 
 // 读数据
-const User = connect((state) => {
-  return state.user;
-})(({ name }) => {
-  return <div>User:{name}</div>;
+const User = connectToUser(({ user }) => {
+  return <div>User:{user.name}</div>;
 });
 
 // createWrapper 将组件和全局的state链接起来
-const UserModifier = connect()(({ state, dispatch, children }) => {
+const UserModifier = connectToUser(({ updateUser, user, children }) => {
   // 写数据
   const onChange = (e) => {
     // update action
-    dispatch({
-      type: "updateUser",
-      data: { name: e.target.value },
-    });
+    updateUser({ name: e.target.value });
   };
 
   return (
     <div>
       {children}
-      <input value={state.user.name} onChange={onChange} />
+      <input value={user.name} onChange={onChange} />
     </div>
   );
 });

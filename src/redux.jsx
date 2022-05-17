@@ -1,9 +1,8 @@
-import React, { useState, useContext, useMemo, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-export const store = {
-  state: {
-    user: { name: "frank", age: 18 },
-  },
+const store = {
+  state: null,
+  reducer: null,
   setState: (newState) => {
     store.state = newState;
     // 更新所有订阅的组件
@@ -21,45 +20,42 @@ export const store = {
   },
 };
 
-// 规范创建新的state过程: reducer(creatNewState)
-const reducer = (state, action) => {
-  if (action.type === "updateUser") {
-    return {
-      ...state,
-      user: {
-        ...state.user,
-        ...action.data,
-      },
-    };
-  } else {
-    return state;
-  }
+export const createStore = (reducer, initState) => {
+  store.state = initState;
+  store.reducer = reducer;
+  return store;
 };
 
-export const AppContext = React.createContext(null);
-
-export const connect = (selector) => (Component) => {
+export const connect = (selector, dispatchSelector) => (Component) => {
   const Wrapper = (props) => {
-    const store = useContext(AppContext);
-    const { state, setState, subscribe } = store;
-    const data = selector ? selector(state) : { state };
-    // 订阅 & 更新
-    const [, update] = useState({});
-    useEffect(() => {
-      subscribe(() => {
-        // 实现精准更新
-        const newData = selector ? selector(state) : { state };
-        if (changed(data, newData)) {
-          update({});
-        }
-      });
-    }, [selector]);
+    const { state, reducer, setState, subscribe } = store;
     // 更新数据
     const dispatch = (action) => {
       const newState = reducer(state, action);
       setState(newState);
     };
-    return <Component {...props} {...data} dispatch={dispatch} />;
+    // selector 读写接口
+    const data = selector ? selector(state) : { state };
+    const dispatchers = dispatchSelector
+      ? dispatchSelector(dispatch)
+      : { dispatch };
+
+    // 订阅 & 更新
+    const [, update] = useState({});
+    useEffect(() => {
+      const unsubscibe = subscribe(() => {
+        // 实现精准更新
+        const newData = selector
+          ? selector(store.state)
+          : { state: store.state };
+        if (changed(data, newData)) {
+          update({});
+        }
+      });
+      return unsubscibe;
+    }, [selector]);
+
+    return <Component {...props} {...data} {...dispatchers} />;
   };
   return Wrapper;
 };
@@ -72,4 +68,10 @@ const changed = (oldState, newState) => {
     }
   }
   return changed;
+};
+
+const AppContext = React.createContext(null);
+
+export const Provider = ({ store, children }) => {
+  return <AppContext.Provider value={store}>{children}</AppContext.Provider>;
 };
